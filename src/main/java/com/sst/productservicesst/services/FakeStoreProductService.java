@@ -16,8 +16,7 @@ public class FakeStoreProductService implements ProductService {
     @Override
     public Product getProductById(Long id) {
 
-        // Call the FakeStore API to get the product with given id.
-//        int x = 1/0;
+        // Call the FakeStore API to get the product with given id
         RestTemplate restTemplate = new RestTemplate();
 
         FakeStoreProductDto fakeStoreProductDto =
@@ -27,10 +26,12 @@ public class FakeStoreProductService implements ProductService {
                 );
 
         if (fakeStoreProductDto == null) {
-            throw new ProductNotFoundException("Please pass a valid product id");
+            throw new ProductNotFoundException(
+                    "Please pass a valid product id"
+            );
         }
 
-        // Convert FakeStoreProductDto object to Product object.
+        // Convert FakeStoreProductDto to Product
         return convertFakeStoreProductDtoToProduct(fakeStoreProductDto);
     }
 
@@ -48,14 +49,56 @@ public class FakeStoreProductService implements ProductService {
         List<Product> products = new ArrayList<>();
 
         if (fakeStoreProductDtos != null) {
-            for (FakeStoreProductDto fakeStoreProductDto : fakeStoreProductDtos) {
+
+            for (FakeStoreProductDto fakeStoreProductDto
+                    : fakeStoreProductDtos) {
+
                 products.add(
-                        convertFakeStoreProductDtoToProduct(fakeStoreProductDto)
+                        convertFakeStoreProductDtoToProduct(
+                                fakeStoreProductDto
+                        )
                 );
             }
         }
 
         return products;
+    }
+
+    @Override
+    public Product createProduct(Product product) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Convert Product to FakeStoreProductDto
+        FakeStoreProductDto fakeStoreProductDto =
+                new FakeStoreProductDto();
+
+        fakeStoreProductDto.setTitle(product.getTitle());
+        fakeStoreProductDto.setDescription(product.getDescription());
+        fakeStoreProductDto.setImage(product.getImage());
+
+        if (product.getCategory() != null) {
+            fakeStoreProductDto.setCategory(
+                    product.getCategory().getDescription()
+            );
+        }
+
+        // Call FakeStore API
+        FakeStoreProductDto response =
+                restTemplate.postForObject(
+                        "https://fakestoreapi.com/products",
+                        fakeStoreProductDto,
+                        FakeStoreProductDto.class
+                );
+
+        if (response == null) {
+            throw new RuntimeException(
+                    "Unable to create product"
+            );
+        }
+
+        // Convert response back to Product
+        return convertFakeStoreProductDtoToProduct(response);
     }
 
     private Product convertFakeStoreProductDtoToProduct(
